@@ -1,0 +1,171 @@
+package com.chinarelife.util;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.engines.SM4Engine;
+import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
+import org.bouncycastle.crypto.macs.GMac;
+import org.bouncycastle.crypto.modes.GCMBlockCipher;
+import org.bouncycastle.crypto.paddings.BlockCipherPadding;
+import org.bouncycastle.crypto.paddings.PKCS7Padding;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
+
+public class SM4Util
+  extends GMBaseUtil
+{
+  public static final String ALGORITHM_NAME = "SM4";
+  public static final String ALGORITHM_NAME_ECB_PADDING = "SM4/ECB/PKCS5Padding";
+  public static final String ALGORITHM_NAME_ECB_NOPADDING = "SM4/ECB/NoPadding";
+  public static final String ALGORITHM_NAME_CBC_PADDING = "SM4/CBC/PKCS5Padding";
+  public static final String ALGORITHM_NAME_CBC_NOPADDING = "SM4/CBC/NoPadding";
+  public static final int DEFAULT_KEY_SIZE = 128;
+  
+  public static byte[] generateKey()
+    throws NoSuchAlgorithmException, NoSuchProviderException
+  {
+    return generateKey(128);
+  }
+  
+  public static byte[] generateKey(int keySize)
+    throws NoSuchAlgorithmException, NoSuchProviderException
+  {
+    KeyGenerator kg = KeyGenerator.getInstance("SM4", "BC");
+    kg.init(keySize, new SecureRandom());
+    return kg.generateKey().getEncoded();
+  }
+  
+  public static byte[] encrypt_Ecb_Padding(byte[] key, byte[] data)
+    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+  {
+    Cipher cipher = generateEcbCipher("SM4/ECB/PKCS5Padding", 1, key);
+    return cipher.doFinal(data);
+  }
+  
+  public static byte[] decrypt_Ecb_Padding(byte[] key, byte[] cipherText)
+    throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException
+  {
+    Cipher cipher = generateEcbCipher("SM4/ECB/PKCS5Padding", 2, key);
+    return cipher.doFinal(cipherText);
+  }
+  
+  public static byte[] encrypt_Ecb_NoPadding(byte[] key, byte[] data)
+    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException
+  {
+    Cipher cipher = generateEcbCipher("SM4/ECB/NoPadding", 1, key);
+    return cipher.doFinal(data);
+  }
+  
+  public static byte[] decrypt_Ecb_NoPadding(byte[] key, byte[] cipherText)
+    throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException
+  {
+    Cipher cipher = generateEcbCipher("SM4/ECB/NoPadding", 2, key);
+    return cipher.doFinal(cipherText);
+  }
+  
+  public static byte[] encrypt_Cbc_Padding(byte[] key, byte[] iv, byte[] data)
+    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException
+  {
+    Cipher cipher = generateCbcCipher("SM4/CBC/PKCS5Padding", 1, key, iv);
+    return cipher.doFinal(data);
+  }
+  
+  public static byte[] decrypt_Cbc_Padding(byte[] key, byte[] iv, byte[] cipherText)
+    throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException
+  {
+    Cipher cipher = generateCbcCipher("SM4/CBC/PKCS5Padding", 2, key, iv);
+    return cipher.doFinal(cipherText);
+  }
+  
+  public static byte[] encrypt_Cbc_NoPadding(byte[] key, byte[] iv, byte[] data)
+    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException
+  {
+    Cipher cipher = generateCbcCipher("SM4/CBC/NoPadding", 1, key, iv);
+    return cipher.doFinal(data);
+  }
+  
+  public static byte[] decrypt_Cbc_NoPadding(byte[] key, byte[] iv, byte[] cipherText)
+    throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException
+  {
+    Cipher cipher = generateCbcCipher("SM4/CBC/NoPadding", 2, key, iv);
+    return cipher.doFinal(cipherText);
+  }
+  
+  public static byte[] doCMac(byte[] key, byte[] data)
+    throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException
+  {
+    Key keyObj = new SecretKeySpec(key, "SM4");
+    return doMac("SM4-CMAC", keyObj, data);
+  }
+  
+  public static byte[] doGMac(byte[] key, byte[] iv, int tagLength, byte[] data)
+  {
+    org.bouncycastle.crypto.Mac mac = new GMac(new GCMBlockCipher(new SM4Engine()), tagLength * 8);
+    return doMac(mac, key, iv, data);
+  }
+  
+  public static byte[] doCBCMac(byte[] key, byte[] iv, byte[] data)
+  {
+    SM4Engine engine = new SM4Engine();
+    org.bouncycastle.crypto.Mac mac = new CBCBlockCipherMac(engine, engine.getBlockSize() * 8, new PKCS7Padding());
+    return doMac(mac, key, iv, data);
+  }
+  
+  public static byte[] doCBCMac(byte[] key, byte[] iv, BlockCipherPadding padding, byte[] data)
+  {
+    SM4Engine engine = new SM4Engine();
+    org.bouncycastle.crypto.Mac mac = new CBCBlockCipherMac(engine, engine.getBlockSize() * 8, padding);
+    return doMac(mac, key, iv, data);
+  }
+  
+  private static byte[] doMac(org.bouncycastle.crypto.Mac mac, byte[] key, byte[] iv, byte[] data)
+  {
+    CipherParameters cipherParameters = new KeyParameter(key);
+    mac.init(new ParametersWithIV(cipherParameters, iv));
+    mac.update(data, 0, data.length);
+    byte[] result = new byte[mac.getMacSize()];
+    mac.doFinal(result, 0);
+    return result;
+  }
+  
+  private static byte[] doMac(String algorithmName, Key key, byte[] data)
+    throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException
+  {
+    javax.crypto.Mac mac = javax.crypto.Mac.getInstance(algorithmName, "BC");
+    mac.init(key);
+    mac.update(data);
+    return mac.doFinal();
+  }
+  
+  private static Cipher generateEcbCipher(String algorithmName, int mode, byte[] key)
+    throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException
+  {
+    Cipher cipher = Cipher.getInstance(algorithmName, "BC");
+    Key sm4Key = new SecretKeySpec(key, "SM4");
+    cipher.init(mode, sm4Key);
+    return cipher;
+  }
+  
+  private static Cipher generateCbcCipher(String algorithmName, int mode, byte[] key, byte[] iv)
+    throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException
+  {
+    Cipher cipher = Cipher.getInstance(algorithmName, "BC");
+    Key sm4Key = new SecretKeySpec(key, "SM4");
+    IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+    cipher.init(mode, sm4Key, ivParameterSpec);
+    return cipher;
+  }
+}

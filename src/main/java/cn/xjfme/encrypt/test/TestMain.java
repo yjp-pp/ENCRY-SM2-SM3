@@ -57,7 +57,7 @@ public class TestMain {
 	public static void main(String[] args) throws Exception {
 		String pubkS = new String(Base64.encode(Util.hexToByte(PUBKEY)));
 		String prikS = new String(Base64.encode(Util.hexToByte(PRKEY)));
-
+		System.out.println("加密公钥："+pubkS);
 		// 获取到组装的Json数据（此数据为须根据实际情况确定）
 		JSONObject jsonObj = reqJsonStr();
 		// -------------------------加密------------------------
@@ -85,7 +85,7 @@ public class TestMain {
 		// ------------------------------验签-------------------------
 		// 第一步 调用请求方接口 HttpUtil.connectionPostJson(参数一:请求接口URL,参数二:请求参数)
 		// String JsonString = HttpUtil.connectionPostJson(ClientConfig.Url,jsonObj.toString());
-		 String JsonString = jsonObj.toString(); // 目前没有请求接口 所以无返回参数 所以 以JsonOjb为例
+		String JsonString = jsonObj.toString(); // 目前没有请求接口 所以无返回参数 所以 以JsonOjb为例
 		if (JsonString != null && !"".equals(JsonString) && JsonString.length() > 0) {
 			// 第二步 将接口返回的字符串转为Json格式 验签
 			JSONObject returnJsonObj = JSONObject.fromObject(JsonString);

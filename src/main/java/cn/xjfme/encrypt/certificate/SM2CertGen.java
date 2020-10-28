@@ -73,11 +73,10 @@ public class SM2CertGen {
 		try {
 			KeyPair kp = generateKeyPair();// 这块就是生成SM2公私钥对
 			System.out.println("=====公钥算法=====" + kp.getPublic().getAlgorithm());
-			BCECPrivateKey bcecPrivateKey = (BCECPrivateKey) kp.getPrivate();// 使用ECPrivateKey
-																			// PrivateKey都可以
-			BCECPublicKey bcecPublicKey = (BCECPublicKey) kp.getPublic();    //使用ECPublicKey
-																			// PublicKey都可以
-
+			BCECPrivateKey bcecPrivateKey = (BCECPrivateKey) kp.getPrivate(); // 使用ECPrivateKey
+																			  // PrivateKey都可以
+			BCECPublicKey bcecPublicKey = (BCECPublicKey) kp.getPublic();     //使用ECPublicKey
+																			  // PublicKey都可以
 			X500Principal principal = new X500Principal("CN=KK丶SS,O=DD丶OO");
 			// X500Principal principal = new
 			// X500Principal("CN="+pageCert.getCn()+",O="+pageCert.getO());
